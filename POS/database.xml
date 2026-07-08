@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <products>
+        <product>
+            <id>101</id>
+            <name>Espresso</name>
+            <price>3.50</price>
+            <category>Beverages</category>
+        </product>
+        <product>
+            <id>102</id>
+            <name>Croissant</name>
+            <price>4.00</price>
+            <category>Bakery</category>
+        </product>
+        <product>
+            <id>103</id>
+            <name>Blueberry Muffin</name>
+            <price>3.75</price>
+            <category>Bakery</category>
+        </product>
+        <product>
+            <id>104</id>
+            <name>Iced Latte</name>
+            <price>4.50</price>
+            <category>Beverages</category>
+        </product>
+        <product>
+            <id>105</id>
+            <name>Avocado Toast</name>
+            <price>7.50</price>
+            <category>Food</category>
+        </product>
+    </products>
+</database>
