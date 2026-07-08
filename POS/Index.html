@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web POS System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>🛒 QuickPOS System</h1>
+        <button id="export-btn" onclick="exportXML()">💾 Save/Export XML DB</button>
+    </header>
+
+    <div class="pos-container">
+        <section class="products-section">
+            <h2>Products</h2>
+            <div id="products-grid" class="products-grid">
+                </div>
+        </section>
+
+        <section class="cart-section">
+            <h2>Current Cart</h2>
+            <div class="cart-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cart-items">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">$0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span id="total">$0.00</span>
+                </div>
+                <button class="checkout-btn" onclick="checkout()">💵 Complete Checkout</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Inline XML database configuration (Initial State)
+        const initialXmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <products>
+        <product>
+            <id>101</id>
+            <name>Espresso</name>
+            <price>3.50</price>
+            <category>Beverages</category>
+        </product>
+        <product>
+            <id>102</id>
+            <name>Croissant</name>
+            <price>4.00</price>
+            <category>Bakery</category>
+        </product>
+        <product>
+            <id>103</id>
+            <name>Blueberry Muffin</name>
+            <price>3.75</price>
+            <category>Bakery</category>
+        </product>
+        <product>
+            <id>104</id>
+            <name>Iced Latte</name>
+            <price>4.50</price>
+            <category>Beverages</category>
+        </product>
+        <product>
+            <id>105</id>
+            <name>Avocado Toast</name>
+            <price>7.50</price>
+            <category>Food</category>
+        </product>
+    </products>
+</database>`;
+
+        let xmlDoc;
+        let cart = [];
+
+        // Initialize POS and Load XML Data
+        window.onload = function() {
+            const parser = new DOMParser();
+            xmlDoc = parser.parseFromString(initialXmlData, "text/xml");
+            loadProducts();
+        };
+
+        // Render products from XML to the Grid
+        function loadProducts() {
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = '';
+            
+            const products = xmlDoc.getElementsByTagName('product');
+            
+            for (let i = 0; i < products.length; i++) {
+                const id = products[i].getElementsByTagName('id')[0].textContent;
+                const name = products[i].getElementsByTagName('name')[0].textContent;
+                const price = parseFloat(products[i].getElementsByTagName('price')[0].textContent);
+                
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.onclick = () => addToCart(id, name, price);
+                productCard.innerHTML = `
+                    <h3>${name}</h3>
+                    <p class="price">$${price.toFixed(2)}</p>
+                `;
+                productsGrid.appendChild(productCard);
+            }
+        }
+
+        // Add item to Cart logic
+        function addToCart(id, name, price) {
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+            }
+            updateCartUI();
+        }
+
+        // Remove item from cart
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+
+        // Update UI displays for cart and totals
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            let subtotal = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${itemTotal.toFixed(2)}</td>
+                    <td><button class="delete-btn" onclick="removeFromCart('${item.id}')">❌</button></td>
+                `;
+                cartItemsContainer.appendChild(row);
+            });
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
+        }
+
+        // Handle checkout mock action
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Cart is empty!");
+                return;
+            }
+            alert("🎯 Sale completed successfully!");
+            cart = [];
+            updateCartUI();
+        }
+
+        // Export/Download the current XML file structure
+        function exportXML() {
+            const serializer = new XMLSerializer();
+            const xmlStr = serializer.serializeToString(xmlDoc);
+            const blob = new Blob([xmlStr], { type: "text/xml" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "database.xml";
+            link.click();
+        }
+    </script>
+</body>
+</html>
